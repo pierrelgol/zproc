@@ -8,6 +8,7 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/root.zig"),
 
         .target = target,
+        .link_libc = true,
     });
 
     const exe = b.addExecutable(.{
@@ -52,4 +53,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run tests");
     test_step.dependOn(&run_mod_tests.step);
     test_step.dependOn(&run_exe_tests.step);
+
+    const check_step = b.step("check", "check zls");
+    check_step.dependOn(&exe.step);
 }
