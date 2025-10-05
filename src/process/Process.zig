@@ -69,14 +69,20 @@ pub fn start(self: *Process, exec: ProcessParams) !void {
                 const dirname = std.fs.path.dirname(path) orelse ".";
                 std.fs.cwd().makePath(dirname) catch {};
 
-                const fd = try std.fs.cwd().createFileZ(path, .{ .read = false, .truncate = false, .mode = 0o644 });
-                defer fd.close();
-                try posix.dup2(fd.handle, posix.STDOUT_FILENO);
+                // Open file in append mode using low-level POSIX functions
+                const fd = try posix.openZ(path, posix.O{ .ACCMODE = .WRONLY, .CREAT = true, .APPEND = true }, 0o644);
+                defer posix.close(fd);
+                try posix.dup2(fd, posix.STDOUT_FILENO);
             } else {
                 const fd = try std.fs.cwd().openFileZ("/dev/null", .{ .mode = .write_only });
                 defer fd.close();
                 try posix.dup2(fd.handle, posix.STDOUT_FILENO);
             }
+        } else {
+            // When not redirecting stdout, still redirect to /dev/null to prevent interference
+            const fd = try std.fs.cwd().openFileZ("/dev/null", .{ .mode = .write_only });
+            defer fd.close();
+            try posix.dup2(fd.handle, posix.STDOUT_FILENO);
         }
 
         if (exec.redirect_stderr) {
@@ -84,14 +90,20 @@ pub fn start(self: *Process, exec: ProcessParams) !void {
                 const dirname = std.fs.path.dirname(path) orelse ".";
                 std.fs.cwd().makePath(dirname) catch {};
 
-                const fd = try std.fs.cwd().createFileZ(path, .{ .read = false, .truncate = false, .mode = 0o644 });
-                defer fd.close();
-                try posix.dup2(fd.handle, posix.STDERR_FILENO);
+                // Open file in append mode using low-level POSIX functions
+                const fd = try posix.openZ(path, posix.O{ .ACCMODE = .WRONLY, .CREAT = true, .APPEND = true }, 0o644);
+                defer posix.close(fd);
+                try posix.dup2(fd, posix.STDERR_FILENO);
             } else {
                 const fd = try std.fs.cwd().openFileZ("/dev/null", .{ .mode = .write_only });
                 defer fd.close();
                 try posix.dup2(fd.handle, posix.STDERR_FILENO);
             }
+        } else {
+            // When not redirecting stderr, still redirect to /dev/null to prevent interference
+            const fd = try std.fs.cwd().openFileZ("/dev/null", .{ .mode = .write_only });
+            defer fd.close();
+            try posix.dup2(fd.handle, posix.STDERR_FILENO);
         }
 
         posix.execveZ(exec.path, exec.argv, exec.envp) catch {
