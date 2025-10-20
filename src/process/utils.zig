@@ -15,24 +15,3 @@ pub fn buildEnvp(env: []const []const u8, allocator: std.mem.Allocator) ![:null]
     }
     return envp;
 }
-
-pub fn freeArgv(argv: [:null]?[*:0]u8, allocator: std.mem.Allocator) void {
-    for (argv) |arg| {
-        if (arg) |a| {
-            allocator.free(a);
-        }
-    }
-    allocator.free(argv);
-}
-
-pub fn freeEnvp(envp: [:null]?[*:0]u8, allocator: std.mem.Allocator) void {
-    for (envp) |env| {
-        if (env) |e| {
-            allocator.free(e);
-        }
-    }
-    allocator.free(envp);
-}
-
-// Note: When using GeneralPurposeAllocator, you need to manually free the memory
-// When using ArenaAllocator, the arena will automatically free all memory when deinitialized

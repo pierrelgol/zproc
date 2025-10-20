@@ -15,6 +15,7 @@ const error_handling_tests = @import("process/tests/error_handling_tests.zig");
 comptime {
     std.testing.refAllDecls(Process);
     std.testing.refAllDecls(ProcessGroup);
+    std.testing.refAllDecls(utils);
     std.testing.refAllDecls(process_lifecycle_tests);
     std.testing.refAllDecls(process_signal_tests);
     std.testing.refAllDecls(process_output_tests);
